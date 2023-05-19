@@ -5,7 +5,8 @@ import { useAudioRecorder } from 'react-audio-voice-recorder';
 export default function AudioInput() {
   const [audioTrack, setAudioTrack] = useState<number>(1);
   const [convertedText, setConvertedText] = useState<string>('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [copied, setCopied] = useState<boolean>(false);
   const { startRecording, stopRecording, recordingBlob, isRecording } =
     useAudioRecorder();
 
@@ -38,7 +39,14 @@ export default function AudioInput() {
     if (recordingBlob) {
       sendAudio(recordingBlob);
     }
-  }, [recordingBlob]);
+  }, [recordingBlob]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (copied) {
+      const timeout = setTimeout(() => setCopied(false), 1000);
+      return () => clearTimeout(timeout);
+    }
+  }, [copied]);
 
   return (
     <>
@@ -55,9 +63,12 @@ export default function AudioInput() {
         <button
           className="w-20 py-2 rounded bg-violet-500 text-white font-medium hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!convertedText}
-          onClick={() => navigator.clipboard.writeText(convertedText)}
+          onClick={() => {
+            navigator.clipboard.writeText(convertedText);
+            setCopied(true);
+          }}
         >
-          Copy
+          {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
     </>
